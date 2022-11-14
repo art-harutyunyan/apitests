@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: installing the node
-        uses: actions/setup-node@
+        uses: actions/setup-node@v1
         with: 
           node-version: "14.x"
       - name: installing newman
