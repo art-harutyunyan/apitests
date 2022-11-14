@@ -1,0 +1,1688 @@
+{
+	"info": {
+		"_postman_id": "5f09b408-94c8-4bf6-bcbf-4129ddd5ea66",
+		"name": "GuardRails APIs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24400532"
+	},
+	"item": [
+		{
+			"name": "Test-Case1: Login-Add1-Validate",
+			"item": [
+				{
+					"name": "Login To Webiste",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Validate the status', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"// setting token and bid as collection variables\r",
+									"pm.variables.set('token', response.authentication.token);\r",
+									"pm.variables.set('bid', response.authentication.bid);\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"arthur.harutyun@gmail.com\",\r\n    \"password\": \"owasp123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rest/user/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rest",
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Available Items",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Validate the status code', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"    pm.expect(pm.response).to.be.an('object');\r",
+									"    pm.expect(pm.response['status']).to.eql('OK')\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"pm.test('Validate the response data', () => {\r",
+									"    pm.expect(response.status).to.eql('success');\r",
+									"    pm.expect(response.data.length).to.be.above(0);\r",
+									"    if(response.data.length > 0) {\r",
+									"        pm.collectionVariables.set(\"avaialbleItems\", response.data);\r",
+									"    }\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rest/products/search?q=",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rest",
+								"products",
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add One Item To Basket",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const length = pm.collectionVariables.get('avaialbleItems').length\r",
+									"\r",
+									"//generating random number from 0 to lenght\r",
+									"let productId = Math.floor(Math.random() * length);\r",
+									"// setting the productId as collection variable\r",
+									"pm.collectionVariables.set('productId', productId);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Validate the status', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"pm.test('Validating the response data', () => {\r",
+									"    pm.expect(response.data.ProductId).to.eql(pm.collectionVariables.get('productId'));\r",
+									"    pm.expect(response.data.BasketId).to.eql(pm.collectionVariables.get('bid'));\r",
+									"    pm.expect(response.data.quantity).to.eql(1)\r",
+									"});\r",
+									"\r",
+									"pm.collectionVariables.set('incrementalBasketId', response.data.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"ProductId\": {{productId}},\r\n    \"BasketId\": \"{{bid}}\",\r\n    \"quantity\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/BasketItems/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"BasketItems",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Items in the Basket",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Validating the status', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"pm.test('Validating one item in the basket', () => {\r",
+									"    pm.expect(response.data.Products.length).to.eql(1);\r",
+									"    pm.expect(response.data.Products[0].id).to.eql(pm.collectionVariables.get('productId'));\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rest/basket/:bid",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rest",
+								"basket",
+								":bid"
+							],
+							"variable": [
+								{
+									"key": "bid",
+									"value": "{{bid}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clear The Basket",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Validate the status', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"pm.test('Validate the data', () => {\r",
+									"    pm.expect(response.status).to.eql('success');\r",
+									"    pm.expect(response.data).to.be.empty;\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/BasketItems/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"BasketItems",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{incrementalBasketId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Test-Case2: Login-Add2-Validate",
+			"item": [
+				{
+					"name": "Login To Webiste",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Validate the status', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"// setting token and bid as collection variables\r",
+									"// pm.collectionVariables.set('token', response.authentication.token);\r",
+									"// pm.collectionVariables.set('bid', response.authentication.bid);\r",
+									"\r",
+									"pm.variables.set('token', response.authentication.token);\r",
+									"pm.variables.set('bid', response.authentication.bid);\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"arthur.harutyun@gmail.com\",\r\n    \"password\": \"owasp123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rest/user/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rest",
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting All Available Items",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Validate the status code', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"    pm.expect(pm.response).to.be.an('object');\r",
+									"    pm.expect(pm.response['status']).to.eql('OK')\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"pm.test('GET /rest/products/search?q, Validate the response data', () => {\r",
+									"    pm.expect(response.status).to.eql('success');\r",
+									"    pm.expect(response.data.length).to.be.above(0);\r",
+									"    if(response.data.length > 0) {\r",
+									"        pm.collectionVariables.set(\"avaialbleItems\", response.data);\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"const avaialbleItems = pm.collectionVariables.get('avaialbleItems');\r",
+									"let itemsToBeAdded = []\r",
+									"for(let i = 0; i < 2; i++) {\r",
+									"    itemsToBeAdded.push(avaialbleItems[Math.floor(Math.random() * avaialbleItems.length)].id)\r",
+									"}\r",
+									"\r",
+									"pm.variables.set('itemsToBeAdded', itemsToBeAdded);\r",
+									"pm.variables.set('addedItems', itemsToBeAdded);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rest/products/search?q=",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rest",
+								"products",
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Two Item To Basket",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const items = pm.variables.get('itemsToBeAdded');\r",
+									"pm.variables.set('currentId', items.shift());\r",
+									"\r",
+									"if(items.length > 0) {\r",
+									"    postman.setNextRequest('Add Two Item To Basket');\r",
+									"} else {\r",
+									"    postman.setNextRequest('Getting All Items in the Basket')\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('POST /api/BasketItems, Validate the status', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"pm.test('POST /api/BasketItems, Validate the data', () => {\r",
+									"    pm.expect(response.data.ProductId).to.eql(pm.variables.get('currentId'));\r",
+									"    pm.expect(response.data.BasketId).to.eql(pm.collectionVariables.get('bid'));\r",
+									"    pm.expect(response.data.quantity).to.eql(1)\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"ProductId\": {{currentId}},\r\n    \"BasketId\": \"{{bid}}\",\r\n    \"quantity\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/BasketItems/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"BasketItems",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting All Items in the Basket",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('GET /rest/basket/:bid Validating the status', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"const addedItems = pm.variables.get('addedItems');\r",
+									"const response = pm.response.json();\r",
+									"pm.test('GET /rest/basket/:bid Validating correct items are added ', () => {\r",
+									"    pm.expect(response.data.Products.length).to.eql(addedItems.length);\r",
+									"    for(let i = 0; i < addedItems.length; i++) {\r",
+									"        pm.expect(addedItems[i] === response.data.Products[i])\r",
+									"    }\r",
+									"});\r",
+									"pm.test('GET /rest/basket/:bid Validating two items are in the basket', () => {\r",
+									"    pm.expect(response.data.Products.length).to.eql(2);\r",
+									"});\r",
+									"\r",
+									"let itemsToBeDeleted = response.data.Products.map(items => {\r",
+									"    return items.BasketItem.id\r",
+									"});\r",
+									"\r",
+									"pm.variables.set('itemsToBeDeleted', itemsToBeDeleted);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rest/basket/:bid",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rest",
+								"basket",
+								":bid"
+							],
+							"variable": [
+								{
+									"key": "bid",
+									"value": "{{bid}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clearing The Basket",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('DELETE /api/BasketItems/:id Validate the status', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"console.log(response)\r",
+									"pm.test('DELETE /api/BasketItems/:id Validate the data', () => {\r",
+									"    pm.expect(response.status).to.eql('success');\r",
+									"    pm.expect(response.data).to.be.empty;\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const items = pm.variables.get('itemsToBeDeleted');\r",
+									"pm.variables.set('currentItem', items.shift())\r",
+									"\r",
+									"if(items.length > 0) {\r",
+									"    postman.setNextRequest('Clearing The Basket');\r",
+									"} else {\r",
+									"    postman.setNextRequest(null)\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/BasketItems/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"BasketItems",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{currentItem}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Test-Case3: Login-Add2-Remove1-Validate",
+			"item": [
+				{
+					"name": "Login To Webiste",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Validate the status', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"// setting token and bid as collection variables\r",
+									"pm.collectionVariables.set('token', response.authentication.token);\r",
+									"pm.collectionVariables.set('bid', response.authentication.bid);\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"arthur.harutyun@gmail.com\",\r\n    \"password\": \"owasp123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rest/user/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rest",
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting All Available Items",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('GET /rest/products/search?q. Validate the status code', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"    pm.expect(pm.response).to.be.an('object');\r",
+									"    pm.expect(pm.response['status']).to.eql('OK')\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"pm.test('GET /rest/products/search?q, Validate the response data', () => {\r",
+									"    pm.expect(response.status).to.eql('success');\r",
+									"    pm.expect(response.data.length).to.be.above(0);\r",
+									"    if(response.data.length > 0) {\r",
+									"        pm.collectionVariables.set(\"avaialbleItems\", response.data);\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"const avaialbleItems = pm.collectionVariables.get('avaialbleItems');\r",
+									"let itemsToBeAdded = []\r",
+									"for(let i = 0; i < 2; i++) {\r",
+									"    itemsToBeAdded.push(avaialbleItems[Math.floor(Math.random() * avaialbleItems.length)].id)\r",
+									"}\r",
+									"\r",
+									"pm.variables.set('itemsToBeAdded', itemsToBeAdded);\r",
+									"pm.variables.set('addedItems', itemsToBeAdded);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rest/products/search?q=",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rest",
+								"products",
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Two Item To Basket",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const items = pm.variables.get('itemsToBeAdded');\r",
+									"pm.variables.set('currentId', items.shift());\r",
+									"\r",
+									"if(items.length > 0) {\r",
+									"    postman.setNextRequest('Add Two Item To Basket');\r",
+									"} else {\r",
+									"    postman.setNextRequest('Getting All Items in the Basket')\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('POST /api/BasketItems, Validate the status', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"pm.test('POST /api/BasketItems, Validate the data', () => {\r",
+									"    pm.expect(response.data.ProductId).to.eql(pm.variables.get('currentId'));\r",
+									"    pm.expect(response.data.BasketId).to.eql(pm.collectionVariables.get('bid'));\r",
+									"    pm.expect(response.data.quantity).to.eql(1)\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"ProductId\": {{currentId}},\r\n    \"BasketId\": \"{{bid}}\",\r\n    \"quantity\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/BasketItems/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"BasketItems",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting All Items in the Basket",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('GET /rest/basket/:bid Validating the status', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"const addedItems = pm.variables.get('addedItems');\r",
+									"const response = pm.response.json();\r",
+									"pm.test('GET /rest/basket/:bid Validating correct items are added ', () => {\r",
+									"    pm.expect(response.data.Products.length).to.eql(addedItems.length);\r",
+									"    for(let i = 0; i < addedItems.length; i++) {\r",
+									"        pm.expect(addedItems[i] === response.data.Products[i])\r",
+									"    }\r",
+									"});\r",
+									"pm.test('GET /rest/basket/:bid Validating two items are in the basket', () => {\r",
+									"    pm.expect(response.data.Products.length).to.eql(2);\r",
+									"});\r",
+									"\r",
+									"let itemsToBeDeleted = response.data.Products.map(items => {\r",
+									"    return items.BasketItem.id\r",
+									"});\r",
+									"\r",
+									"pm.variables.set('itemsToBeDeleted', itemsToBeDeleted);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rest/basket/:bid",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rest",
+								"basket",
+								":bid"
+							],
+							"variable": [
+								{
+									"key": "bid",
+									"value": "{{bid}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Removing One Item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('DELETE /api/BasketItems/:id Validate the status', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"pm.test('DELETE /api/BasketItems/:id Validate the data', () => {\r",
+									"    pm.expect(response.status).to.eql('success');\r",
+									"    pm.expect(response.data).to.be.empty;\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const items = pm.variables.get('itemsToBeDeleted');\r",
+									"pm.variables.set('currentItem', items.shift())\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/BasketItems/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"BasketItems",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{currentItem}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Should Be One Item",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('GET /rest/basket/:bid, Validate the status', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"pm.test('GET /rest/basket/:bid, Validate one item in the basket', () => {\r",
+									"        pm.expect(response.data.Products.length).to.eql(1);\r",
+									"});\r",
+									"\r",
+									"pm.variables.set('removeItem', response.data.Products[0].BasketItem.id);\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rest/basket/:bid",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"rest",
+								"basket",
+								":bid"
+							],
+							"variable": [
+								{
+									"key": "bid",
+									"value": "{{bid}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clear The Basket",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('DELETE /api/BasketItems/:id Validate the status', () => {\r",
+									"    pm.expect(pm.response).to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"pm.test('DELETE /api/BasketItems/:id Validate the data', () => {\r",
+									"    pm.expect(response.status).to.eql('success');\r",
+									"    pm.expect(response.data).to.be.empty;\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/BasketItems/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"BasketItems",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{removeItem}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Negative Tests",
+			"item": [
+				{
+					"name": "POST",
+					"item": [
+						{
+							"name": "Login API without body",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('POST /login, without body' , () => {\r",
+											"    pm.expect(pm.response).to.have.status(401);\r",
+											"});\r",
+											"\r",
+											"pm.test('POST /login, unauthorized', () => {\r",
+											"    pm.expect(pm.response.status).to.eql('Unauthorized')\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/rest/user/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"rest",
+										"user",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Incorrect Email Format",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('POST /login, incorrect email' , () => {\r",
+											"    pm.expect(pm.response).to.have.status(401);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"incorrectMailFormat\",\r\n    \"password\": \"owasp123\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/rest/user/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"rest",
+										"user",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Incorrect Password",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('POST /login, incorrect password' , () => {\r",
+											"    pm.expect(pm.response).to.have.status(401);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"arthur.harutyun@gmail.com\",\r\n    \"password\": \"incorrectPass\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/rest/user/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"rest",
+										"user",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add Item Without Token",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('POST /BasketItems, without token' , () => {\r",
+											"    pm.expect(pm.response).to.have.status(401);\r",
+											"});\r",
+											"\r",
+											"pm.test('POST /BasketItems, unauthorized', () => {\r",
+											"    pm.expect(pm.response.status).to.eql('Unauthorized')\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/BasketItems/",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"BasketItems",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add Item With unavailable id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('POST /BasketItems, with non-existing id' , () => {\r",
+											"    pm.expect(pm.response).to.have.status(500);\r",
+											"});\r",
+											"\r",
+											"pm.test('POST /BasketItems, internal server error', () => {\r",
+											"    pm.expect(pm.response.status).to.eql('Internal Server Error')\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"BasketId\": \"11\",\r\n    \"ProductId\": 65214,\r\n    \"quantity\": 1\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/BasketItems/",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"BasketItems",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add Item With unavailable bid",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('POST /BasketItems, non existing bid' , () => {\r",
+											"    pm.expect(pm.response).to.have.status(401);\r",
+											"});\r",
+											"\r",
+											"pm.test('POST /BasketItems, unauthorized', () => {\r",
+											"    pm.expect(pm.response.status).to.eql('Unauthorized')\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"BasketId\": \"145214785214785dfsgsgrd\",\r\n    \"ProductId\": 1,\r\n    \"quantity\": 1\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/BasketItems/",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"BasketItems",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "GET",
+					"item": [
+						{
+							"name": "Get items in the basket without token",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('GET /basket/:bid, without token', () => {\r",
+											"    pm.expect(pm.response).to.have.status(401);\r",
+											"});\r",
+											"\r",
+											"pm.test('GET /basket/:bid, unauthorized', () => {\r",
+											"    pm.expect(pm.response.status).to.eql('Unauthorized')\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/rest/basket/:bid",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"rest",
+										"basket",
+										":bid"
+									],
+									"query": [
+										{
+											"key": "q",
+											"value": "",
+											"disabled": true
+										}
+									],
+									"variable": [
+										{
+											"key": "bid",
+											"value": "{{bid}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get items in the basket without bid",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('GET /basket/:bid, without token', () => {\r",
+											"    pm.expect(pm.response).to.have.status(500);\r",
+											"});\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/rest/basket/",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"rest",
+										"basket",
+										""
+									],
+									"query": [
+										{
+											"key": "q",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get items in the basket with invalid bid",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('GET /basket/:bid, without token', () => {\r",
+											"    pm.expect(pm.response).to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"\r",
+											"const response = pm.response.json();\r",
+											"pm.test('GET /basket/:bid, unauthorized', () => {\r",
+											"    pm.expect(response.status).to.eql('success');\r",
+											"    pm.expect(response.data).to.be.empty;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/rest/basket/:bid",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"rest",
+										"basket",
+										":bid"
+									],
+									"query": [
+										{
+											"key": "q",
+											"value": "",
+											"disabled": true
+										}
+									],
+									"variable": [
+										{
+											"key": "bid",
+											"value": "invalidBid"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "DELETE",
+					"item": [
+						{
+							"name": "Delete Item Without Token",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('POST /BasketItems/:id, without token' , () => {\r",
+											"    pm.expect(pm.response).to.have.status(401);\r",
+											"});\r",
+											"\r",
+											"pm.test('POST /BasketItems/:id, unauthorized', () => {\r",
+											"    pm.expect(pm.response.status).to.eql('Unauthorized')\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/BasketItems/:id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"BasketItems",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": null
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Item Without Id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('POST BasketItems/:id, without id' , () => {\r",
+											"    pm.expect(pm.response).to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test('DELETE BasketItems/:id, not found', () => {\r",
+											"    pm.expect(pm.response.status).to.eql('Not Found')\r",
+											"});\r",
+											"\r",
+											"const response = pm.response.json();\r",
+											"pm.test('DELETE BasketItems/:id', () => {\r",
+											"    pm.expect(response.message).to.eql('Not Found')\r",
+											"    pm.expect(response.errors).to.be.empty\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{token}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/BasketItems/:id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"BasketItems",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": null
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "bid",
+			"value": "11"
+		},
+		{
+			"key": "avaialbleItems",
+			"value": ""
+		},
+		{
+			"key": "productId",
+			"value": ""
+		},
+		{
+			"key": "incrementalBasketId",
+			"value": ""
+		},
+		{
+			"key": "baseUrl",
+			"value": "https://juice-shop.guardrails.ai"
+		}
+	]
+}
