@@ -1,0 +1,11 @@
+name: GuardRails
+runs on: ubuntu-latest
+- name: Install Node
+  uses: actions/setup-node@v1
+  with:
+    node-version: "14.x"
+- name: Install newman
+  run: |
+    npm install -g newman
+- name: Run the tests
+  run: newman run GuardRails-APIs.postman_collection.json
