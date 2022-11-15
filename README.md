@@ -29,5 +29,6 @@ Option 2:
 
 - simply run `newman run https://www.getpostman.com/collections/0162c448641fb760e6b4`
 
+I also added the tests under the GitHub Actions, so you can check out the last few runs
 In case you want to check the collection, please follow the [link](https://www.postman.com/art-harutyunyan/workspace/guardrailsworkspace/collection/24400532-5f09b408-94c8-4bf6-bcbf-4129ddd5ea66?action=share&creator=24400532)
 
